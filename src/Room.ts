@@ -15,7 +15,7 @@ import { Serializer } from './serializer/Serializer';
 import { ErrorCode, getMessageBytes, Protocol } from './Protocol';
 import { Deferred, spliceOne } from './Utils';
 
-import { debugAndPrintError, debugPatch } from './Debug';
+import { debugAndPrintError, debugPatch, debugMatchMaking } from './Debug';
 import { ServerError } from './errors/ServerError';
 import { RoomListingData } from './matchmaker/drivers/Driver';
 import { FossilDeltaSerializer } from './serializer/FossilDeltaSerializer';
@@ -492,6 +492,7 @@ export abstract class Room<State= any, Metadata= any> {
       await this._incrementClientCount();
 
       this.reservedSeatTimeouts[sessionId] = setTimeout(async () => {
+        debugMatchMaking(`Reserved seat for session ${sessionId} has expired.`);
         delete this.reservedSeats[sessionId];
         delete this.reservedSeatTimeouts[sessionId];
         await this._decrementClientCount();
