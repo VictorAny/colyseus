@@ -1,5 +1,6 @@
 import redis from 'redis';
 import { promisify } from 'util';
+import Redlock = require('redlock');
 
 import { Presence } from './Presence';
 
@@ -8,6 +9,7 @@ type Callback = (...args: any[]) => void;
 export class RedisPresence implements Presence {
     public sub: redis.RedisClient;
     public pub: redis.RedisClient;
+    public redlock: Redlock;
 
     protected subscribeAsync: any;
     protected unsubscribeAsync: any;
@@ -26,6 +28,12 @@ export class RedisPresence implements Presence {
     constructor(opts?: redis.ClientOpts) {
         this.sub = redis.createClient(opts);
         this.pub = redis.createClient(opts);
+        this.redlock = new Redlock([this.sub, this.pub], {
+            driftFactor: 0.01,
+            retryCount: 10,
+            retryDelay: 200,
+            retryJitter: 200
+        })
 
         // no listener limit
         this.sub.setMaxListeners(0);

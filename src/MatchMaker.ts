@@ -16,6 +16,8 @@ import { MatchMakerDriver, RoomListingData } from './matchmaker/drivers/Driver';
 import { LocalDriver } from './matchmaker/drivers/LocalDriver';
 import { Client } from './transport/Transport';
 import { Type } from './types';
+import { RedisPresence } from './presence/RedisPresence';
+
 
 export { MatchMakerDriver };
 
@@ -264,6 +266,27 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   room.roomName = roomName;
   room.presence = presence;
 
+  var lock: any = null
+
+  if (presence instanceof RedisPresence) { 
+    var redisPresence = presence as RedisPresence
+    var uniqueRoomId = clientOptions.roomId !== undefined ? clientOptions.roomId : room.roomId
+    console.log(`Awaiting redis lock for ${roomName}`)
+    lock = await redisPresence.redlock.acquire(uniqueRoomId, 1000).catch(error => {
+      console.log(`Redis lock for ${roomName} expired after 1 second.`)
+      throw new ServerError( ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${roomName} expired`)
+    })
+    console.log(`Redis lock for ${roomName} acquired.`)
+    
+    // Check if room exists post lock acquisition.
+    var existingRoom = await findOneRoomAvailable(roomName, clientOptions)
+    if (existingRoom) { 
+      lock.unlock()
+      console.log(`Redis lock for ${roomName} let go since room already exists`)
+      return existingRoom
+    }
+  }
+
   // create a RoomCache reference.
   room.listing = driver.createInstance({
     name: roomName,
@@ -279,6 +302,9 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
       presence.hincrby(getRoomCountKey(), processId, 1);
 
     } catch (e) {
+      if (lock) { 
+        lock.unlock()
+      }
       debugAndPrintError(e);
       throw new ServerError(
         e.code || ErrorCode.MATCHMAKE_UNHANDLED,
@@ -307,6 +333,11 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   await room.listing.save();
 
   registeredHandler.emit('create', room);
+
+  if (lock) { 
+    lock.unlock();
+    console.log(`Releasing lock for ${roomName} after successfully creating room`)
+  }
 
   return room.listing;
 }
