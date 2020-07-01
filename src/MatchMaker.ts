@@ -266,18 +266,18 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   if (presence instanceof RedisPresence && clientOptions.roomId !== undefined) { 
     var redisPresence = presence as RedisPresence
     var uniqueRoomId = clientOptions.roomId
-    console.log(`Awaiting redis lock for ${roomName}`)
+    console.log(`Awaiting redis lock for ${uniqueRoomId}`)
     lock = await redisPresence.redlock.acquire(uniqueRoomId, 1000).catch(error => {
-      console.log(`Redis lock for ${roomName} expired after 1 second. with error: ${error}`)
-      throw new ServerError( ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${roomName} expired`)
+      console.log(`Redis lock for ${uniqueRoomId} expired after 1 second. with error: ${error}`)
+      throw new ServerError( ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${uniqueRoomId} expired`)
     })
-    console.log(`Redis lock for ${roomName} acquired.`)
+    console.log(`Redis lock for ${uniqueRoomId} acquired.`)
     
     // Check if room exists post lock acquisition.
-    var existingRoom = await findOneRoomAvailable(roomName, clientOptions)
+    var existingRoom = await driver.findOne({uniqueRoomId})
     if (existingRoom) { 
       lock.unlock()
-      console.log(`Redis lock for ${roomName} let go since room already exists`)
+      console.log(`Redis lock for ${uniqueRoomId} let go since room already exists`)
       return existingRoom
     }
   }
