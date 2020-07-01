@@ -268,7 +268,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     var uniqueRoomId = clientOptions.roomId
     console.log(`Awaiting redis lock for ${roomName}`)
     lock = await redisPresence.redlock.acquire(uniqueRoomId, 1000).catch(error => {
-      console.log(`Redis lock for ${roomName} expired after 1 second.`)
+      console.log(`Redis lock for ${roomName} expired after 1 second. with error: ${error}`)
       throw new ServerError( ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${roomName} expired`)
     })
     console.log(`Redis lock for ${roomName} acquired.`)

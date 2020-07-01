@@ -28,12 +28,16 @@ export class RedisPresence implements Presence {
     constructor(opts?: redis.ClientOpts) {
         this.sub = redis.createClient(opts);
         this.pub = redis.createClient(opts);
-        this.redlock = new Redlock([this.sub, this.pub], {
+        this.redlock = new Redlock([this.pub], {
             driftFactor: 0.01,
             retryCount: 10,
             retryDelay: 200,
             retryJitter: 200
         })
+
+        this.redlock.on('clientError', function(err) {
+            console.error('A redis error has occurred:', err);
+        });
 
         // no listener limit
         this.sub.setMaxListeners(0);
