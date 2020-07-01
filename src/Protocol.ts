@@ -31,6 +31,7 @@ export enum ErrorCode {
   MATCHMAKE_INVALID_ROOM_ID = 4212,
   MATCHMAKE_UNHANDLED = 4213, // generic exception during onCreate/onJoin
   MATCHMAKE_EXPIRED = 4214, // generic exception during onCreate/onJoin
+  MATCHMAKE_LOCK_EXPIRE = 4215,
 
   AUTH_FAILED = 4215,
   APPLICATION_ERROR = 4216,
