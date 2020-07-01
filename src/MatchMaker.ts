@@ -253,24 +253,19 @@ export async function createRoom(roomName: string, clientOptions: ClientOptions)
 }
 
 async function handleCreateRoom(roomName: string, clientOptions: ClientOptions): Promise<RoomListingData> {
+  console.log("Calling handle create room!")
   const registeredHandler = handlers[roomName];
 
   if (!registeredHandler) {
     throw new ServerError( ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
   }
 
-  const room = new registeredHandler.klass();
-
-  // set room public attributes
-  room.roomId = generateId();
-  room.roomName = roomName;
-  room.presence = presence;
-
   var lock: any = null
-
-  if (presence instanceof RedisPresence) { 
+  console.log(roomName)
+  
+  if (presence instanceof RedisPresence && clientOptions.roomId !== undefined) { 
     var redisPresence = presence as RedisPresence
-    var uniqueRoomId = clientOptions.roomId !== undefined ? clientOptions.roomId : room.roomId
+    var uniqueRoomId = clientOptions.roomId
     console.log(`Awaiting redis lock for ${roomName}`)
     lock = await redisPresence.redlock.acquire(uniqueRoomId, 1000).catch(error => {
       console.log(`Redis lock for ${roomName} expired after 1 second.`)
@@ -286,6 +281,14 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
       return existingRoom
     }
   }
+
+  console.log("Creating room")
+  const room = new registeredHandler.klass();
+
+  // set room public attributes
+  room.roomId = generateId();
+  room.roomName = roomName;
+  room.presence = presence;
 
   // create a RoomCache reference.
   room.listing = driver.createInstance({
