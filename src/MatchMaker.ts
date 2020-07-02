@@ -298,6 +298,10 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     ...registeredHandler.getFilterOptions(clientOptions),
   });
 
+    // Check if room exists post lock acquisition.
+    var existingRoom = await driver.findOne({uniqueRoomId})
+    console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
+
   if (room.onCreate) {
     try {
       await room.onCreate(merge({}, clientOptions, registeredHandler.options));
@@ -336,6 +340,14 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   await createRoomReferences(room, true);
   await room.listing.save();
 
+  var existingRoom = await driver.findOne({uniqueRoomId})
+    console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
+    if (existingRoom) { 
+      console.log("Room exists post save.")
+    } else { 
+      console.log("Room does not exist post save")
+    }
+ 
   registeredHandler.emit('create', room);
 
   if (lock) { 
