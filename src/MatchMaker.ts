@@ -28,8 +28,8 @@ export interface SeatReservation {
   room: RoomListingData;
 }
 
-const handlers: {[id: string]: RegisteredHandler} = {};
-const rooms: {[roomId: string]: Room} = {};
+const handlers: { [id: string]: RegisteredHandler } = {};
+const rooms: { [roomId: string]: Room } = {};
 
 export let processId: string;
 export let presence: Presence;
@@ -116,12 +116,12 @@ export async function joinById(roomId: string, options: ClientOptions = {}) {
       return reserveSeatFor(room, options);
 
     } else {
-      throw new ServerError( ErrorCode.MATCHMAKE_INVALID_ROOM_ID, `room "${roomId}" is locked`);
+      throw new ServerError(ErrorCode.MATCHMAKE_INVALID_ROOM_ID, `room "${roomId}" is locked`);
 
     }
 
   } else {
-    throw new ServerError( ErrorCode.MATCHMAKE_INVALID_ROOM_ID, `room "${roomId}" not found`);
+    throw new ServerError(ErrorCode.MATCHMAKE_INVALID_ROOM_ID, `room "${roomId}" not found`);
   }
 
 }
@@ -140,7 +140,7 @@ export async function findOneRoomAvailable(roomName: string, options: ClientOpti
   return await awaitRoomAvailable(roomName, async () => {
     const handler = handlers[roomName];
     if (!handler) {
-      throw new ServerError( ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
+      throw new ServerError(ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
     }
 
     const roomQuery = driver.findOne({
@@ -161,7 +161,7 @@ export async function findOneRoomAvailable(roomName: string, options: ClientOpti
 /**
  * Call a method or return a property on a remote room.
  */
-export async function remoteRoomCall<R= any>(
+export async function remoteRoomCall<R = any>(
   roomId: string,
   method: string,
   args?: any[],
@@ -183,8 +183,8 @@ export async function remoteRoomCall<R= any>(
 
   } else {
     return (!args && typeof (room[method]) !== 'function')
-        ? room[method]
-        : (await room[method].apply(room, args));
+      ? room[method]
+      : (await room[method].apply(room, args));
   }
 }
 
@@ -208,7 +208,7 @@ export function removeRoomType(name: string) {
 }
 
 export function hasHandler(name: string) {
-  return handlers[ name ] !== undefined;
+  return handlers[name] !== undefined;
 }
 
 /**
@@ -257,26 +257,26 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   const registeredHandler = handlers[roomName];
 
   if (!registeredHandler) {
-    throw new ServerError( ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
+    throw new ServerError(ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
   }
 
   var lock: any = null
   console.log(roomName)
-  
-  if (presence instanceof RedisPresence && clientOptions.roomId !== undefined) { 
+
+  if (presence instanceof RedisPresence && clientOptions.roomId !== undefined) {
     var redisPresence = presence as RedisPresence
     var uniqueRoomId = clientOptions.roomId
     console.log(`Awaiting redis lock for ${uniqueRoomId}`)
     lock = await redisPresence.redlock.acquire(uniqueRoomId, 1000).catch(error => {
       console.log(`Redis lock for ${uniqueRoomId} expired after 1 second. with error: ${error}`)
-      throw new ServerError( ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${uniqueRoomId} expired`)
+      throw new ServerError(ErrorCode.MATCHMAKE_LOCK_EXPIRE, `redis lock for ${uniqueRoomId} expired`)
     })
     console.log(`Redis lock for ${uniqueRoomId} acquired.`)
-    
+
     // Check if room exists post lock acquisition.
-    var existingRoom = await driver.findOne({uniqueRoomId})
+    var existingRoom = await driver.findOne({ uniqueRoomId })
     console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
-    if (existingRoom) { 
+    if (existingRoom) {
       lock.unlock()
       console.log(`Redis lock for ${uniqueRoomId} let go since room already exists`)
       return existingRoom
@@ -298,9 +298,9 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     ...registeredHandler.getFilterOptions(clientOptions),
   });
 
-    // Check if room exists post lock acquisition.
-    var existingRoom = await driver.findOne({uniqueRoomId})
-    console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
+  // Check if room exists post lock acquisition.
+  var existingRoom = await driver.findOne({ uniqueRoomId })
+  console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
 
   if (room.onCreate) {
     try {
@@ -310,7 +310,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
       presence.hincrby(getRoomCountKey(), processId, 1);
 
     } catch (e) {
-      if (lock) { 
+      if (lock) {
         lock.unlock()
       }
       debugAndPrintError(e);
@@ -336,21 +336,25 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   room._events.once('dispose', disposeRoom.bind(this, roomName, room));
   room._events.once('disconnect', () => room._events.removeAllListeners());
 
+  try { 
   // room always start unlocked
   await createRoomReferences(room, true);
   await room.listing.save();
+  } catch (e) { 
+    console.log(`Error when saving room. ${e}`)
+  }
 
-  var existingRoom = await driver.findOne({uniqueRoomId})
-    console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
-    if (existingRoom) { 
-      console.log("Room exists post save.")
-    } else { 
-      console.log("Room does not exist post save")
-    }
- 
+  var existingRoom = await driver.findOne({ uniqueRoomId })
+  console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
+  if (existingRoom) {
+    console.log("Room exists post save.")
+  } else {
+    console.log("Room does not exist post save")
+  }
+
   registeredHandler.emit('create', room);
 
-  if (lock) { 
+  if (lock) {
     lock.unlock();
     console.log(`Releasing lock for ${roomName} after successfully creating room`)
   }
