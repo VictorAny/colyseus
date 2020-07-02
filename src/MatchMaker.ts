@@ -274,7 +274,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     console.log(`Redis lock for ${uniqueRoomId} acquired.`)
 
     // Check if room exists post lock acquisition.
-    var existingRoom = await driver.findOne({ uniqueRoomId })
+    var existingRoom = await driver.findOne({ roomId: uniqueRoomId })
     console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
     if (existingRoom) {
       lock.unlock()
@@ -299,7 +299,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   });
 
   // Check if room exists post lock acquisition.
-  var existingRoom = await driver.findOne({ uniqueRoomId })
+  var existingRoom = await driver.findOne({ roomId: uniqueRoomId })
   console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
 
   if (room.onCreate) {
@@ -344,7 +344,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     console.log(`Error when saving room. ${e}`)
   }
 
-  var existingRoom = await driver.findOne({ uniqueRoomId })
+  var existingRoom = await driver.findOne({roomId: uniqueRoomId })
   console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
   if (existingRoom) {
     console.log("Room exists post save.")

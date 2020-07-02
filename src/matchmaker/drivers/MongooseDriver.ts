@@ -64,5 +64,4 @@ export class MongooseDriver implements MatchMakerDriver {
       roomId: 1,
     })) as any as QueryHelpers<RoomListingData>;
   }
-
 }
