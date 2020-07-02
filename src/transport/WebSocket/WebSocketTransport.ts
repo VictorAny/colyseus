@@ -108,7 +108,9 @@ export class WebSocketTransport extends Transport {
     const client = new WebSocketClient(sessionId, rawClient);
 
     try {
-      if (!room || !room.hasReservedSeat(sessionId)) {
+      if (!room) {
+        throw new Error("room does not exist")
+      } else if (!room.hasReservedSeat(sessionId)) {
         throw new Error('seat reservation expired.');
       }
 

@@ -275,6 +275,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
     
     // Check if room exists post lock acquisition.
     var existingRoom = await driver.findOne({uniqueRoomId})
+    console.log(`Result of attempting to find existing for ${uniqueRoomId} = ${existingRoom}`)
     if (existingRoom) { 
       lock.unlock()
       console.log(`Redis lock for ${uniqueRoomId} let go since room already exists`)
