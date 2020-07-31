@@ -1,9 +1,11 @@
 import redis from 'redis';
+import Redlock = require('redlock');
 import { Presence } from './Presence';
 declare type Callback = (...args: any[]) => void;
 export declare class RedisPresence implements Presence {
     sub: redis.RedisClient;
     pub: redis.RedisClient;
+    redlock: Redlock;
     protected subscribeAsync: any;
     protected unsubscribeAsync: any;
     protected publishAsync: any;
