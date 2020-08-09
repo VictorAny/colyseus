@@ -19,6 +19,7 @@ export declare class LocalPresence implements Presence {
     private timeouts;
     subscribe(topic: string, callback: (...args: any[]) => void): this;
     unsubscribe(topic: string, callback?: Callback): this;
+    getSubscriptions(): Promise<string[]>;
     publish(topic: string, data: any): this;
     exists(roomId: string): Promise<boolean>;
     setex(key: string, value: string, seconds: number): void;
