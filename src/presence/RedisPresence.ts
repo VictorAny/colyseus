@@ -70,7 +70,7 @@ export class RedisPresence implements Presence {
           this.sub.addListener('message', this.handleSubscription);
         }
         await this.subscribeAsync(topic);
-        console.log(`Finish async subscribe`)
+        console.log(`Finish async subscribe for ${topic}`)
         return this;
     }
 
@@ -85,10 +85,10 @@ export class RedisPresence implements Presence {
         }
 
         if (this.subscriptions[topic].length === 0) {
-          console.log('Beginning async unsubscribe')
+          console.log(`Beginning async unsubscribe for ${topic}`)
           await this.unsubscribeAsync(topic);
         }
-        console.log("Finish async unsubscribe")
+        console.log(`Finish async unsubscribe for ${topic}`)
         return this;
     }
 
