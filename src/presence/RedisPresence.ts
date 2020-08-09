@@ -60,20 +60,16 @@ export class RedisPresence implements Presence {
 
     public async subscribe(topic: string, callback: Callback) {
         if (!this.subscriptions[topic]) {
-          console.log(`Setting subcriptions for topic ${topic} to []`)
           this.subscriptions[topic] = [];
-        } else  { 
-            console.log(`Already subscribed to ${topic}`)
-            console.log(this.subscriptions[topic])
         }
 
         this.subscriptions[topic].push(callback);
+        console.log(`Subscriptions for ${topic} are = ${this.subscriptions[topic]}`)
 
         if (this.sub.listeners('message').length === 0) {
           this.sub.addListener('message', this.handleSubscription);
-        } else { 
-            console.log("Sub clients !== 0 so not add message listener")
-        }
+        } 
+
         await this.subscribeAsync(topic);
         console.log(`Finish async subscribe for ${topic}`)
         return this;
@@ -81,11 +77,12 @@ export class RedisPresence implements Presence {
 
     public async unsubscribe(topic: string, callback?: Callback) {
         if (callback) {
-          console.log(`Call unsusbcribe with specific callback to remove`)
+          console.log(`Calling unsusbcribe with specific callback to remove`)
           const index = this.subscriptions[topic].indexOf(callback);
+          console.log(`Found callback at index = ${index}`)
           this.subscriptions[topic].splice(index, 1);
         } else {
-          console.log(`Setting subscription for topic ${topic} = []`)
+          console.log(`Setting subscription for topic ${topic} = []. YOU REALLY SHOULD NOT BE DOING THIS.`)
           this.subscriptions[topic] = [];
         }
 
