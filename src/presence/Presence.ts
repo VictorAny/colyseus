@@ -2,6 +2,7 @@ export interface Presence {
     subscribe(topic: string, callback: Function);
     unsubscribe(topic: string, callback?: Function);
     publish(topic: string, data: any);
+    getSubscriptions(): Promise<string[]>;
 
     exists(roomId: string): Promise<boolean>;
 
