@@ -62,12 +62,17 @@ export class RedisPresence implements Presence {
         if (!this.subscriptions[topic]) {
           console.log(`Setting subcriptions for topic ${topic} to []`)
           this.subscriptions[topic] = [];
+        } else  { 
+            console.log(`Already subscribed to ${topic}`)
+            console.log(this.subscriptions[topic])
         }
 
         this.subscriptions[topic].push(callback);
 
         if (this.sub.listeners('message').length === 0) {
           this.sub.addListener('message', this.handleSubscription);
+        } else { 
+            console.log("Sub clients !== 0 so not add message listener")
         }
         await this.subscribeAsync(topic);
         console.log(`Finish async subscribe for ${topic}`)
@@ -87,6 +92,8 @@ export class RedisPresence implements Presence {
         if (this.subscriptions[topic].length === 0) {
           console.log(`Beginning async unsubscribe for ${topic}`)
           await this.unsubscribeAsync(topic);
+        } else { 
+            console.log(`Length of subscriptions for topic ${topic} is not == 0 so not unsubscribing..`)
         }
         console.log(`Finish async unsubscribe for ${topic}`)
         return this;
