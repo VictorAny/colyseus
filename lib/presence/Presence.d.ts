@@ -2,7 +2,7 @@ export interface Presence {
     subscribe(topic: string, callback: Function): any;
     unsubscribe(topic: string, callback?: Function): any;
     publish(topic: string, data: any): any;
-    getSubscriptions(): Promise<string[]>;
+    getSubscriptions(): any;
     exists(roomId: string): Promise<boolean>;
     setex(key: string, value: string, seconds: number): any;
     get(key: string): any;

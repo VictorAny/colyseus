@@ -37,8 +37,8 @@ export class LocalPresence implements Presence {
         return this;
     }
 
-    public async getSubscriptions(): Promise<string[]> { 
-        return Object.keys(this.listenersByTopic) || []
+    public async getSubscriptions(){ 
+        return this.listenersByTopic
     }
 
     public publish(topic: string, data: any) {

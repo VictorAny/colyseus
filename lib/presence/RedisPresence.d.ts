@@ -22,7 +22,9 @@ export declare class RedisPresence implements Presence {
     constructor(opts?: redis.ClientOpts);
     subscribe(topic: string, callback: Callback): Promise<this>;
     unsubscribe(topic: string, callback?: Callback): Promise<this>;
-    getSubscriptions(): Promise<string[]>;
+    getSubscriptions(): Promise<{
+        [channel: string]: Callback[];
+    }>;
     publish(topic: string, data: any): Promise<void>;
     exists(roomId: string): Promise<boolean>;
     setex(key: string, value: string, seconds: number): Promise<unknown>;

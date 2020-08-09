@@ -91,7 +91,7 @@ export class RedisPresence implements Presence {
     }
 
     public async getSubscriptions() { 
-        return Object.keys(this.subscriptions)
+        return this.subscriptions
     }
 
     public async publish(topic: string, data: any) {
