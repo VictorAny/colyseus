@@ -64,35 +64,26 @@ export class RedisPresence implements Presence {
         }
 
         this.subscriptions[topic].push(callback);
-        console.log(`Subscriptions for ${topic} are = ${this.subscriptions[topic]}`)
 
         if (this.sub.listeners('message').length === 0) {
           this.sub.addListener('message', this.handleSubscription);
         } 
 
         await this.subscribeAsync(topic);
-        console.log(`Finish async subscribe for ${topic}`)
         return this;
     }
 
     public async unsubscribe(topic: string, callback?: Callback) {
         if (callback) {
-          console.log(`Calling unsusbcribe with specific callback to remove`)
           const index = this.subscriptions[topic].indexOf(callback);
-          console.log(`Found callback at index = ${index}`)
           this.subscriptions[topic].splice(index, 1);
         } else {
-          console.log(`Setting subscription for topic ${topic} = []. YOU REALLY SHOULD NOT BE DOING THIS.`)
           this.subscriptions[topic] = [];
         }
 
         if (this.subscriptions[topic].length === 0) {
-          console.log(`Beginning async unsubscribe for ${topic}`)
           await this.unsubscribeAsync(topic);
-        } else { 
-            console.log(`Length of subscriptions for topic ${topic} is not == 0 so not unsubscribing..`)
-        }
-        console.log(`Finish async unsubscribe for ${topic}`)
+        } 
         return this;
     }
 
