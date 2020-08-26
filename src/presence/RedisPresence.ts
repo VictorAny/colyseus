@@ -208,10 +208,15 @@ export class RedisPresence implements Presence {
     }
 
     protected handleSubscription = (channel, message) => {
-        if (this.subscriptions[channel]) {
-          for (let i = 0, l = this.subscriptions[channel].length; i < l; i++) {
-            this.subscriptions[channel][i](JSON.parse(message));
-          }
+        try { 
+            if (this.subscriptions[channel]) {
+                for (let i = 0, l = this.subscriptions[channel].length; i < l; i++) {
+                    this.subscriptions[channel][i](JSON.parse(message));
+                }
+            }
+        } catch(err) { 
+            console.log("Erorr occured during subscription handling")
+            console.log(err)
         }
     }
 
