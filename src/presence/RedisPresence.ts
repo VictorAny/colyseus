@@ -1,8 +1,11 @@
 import redis from 'redis';
 import { promisify } from 'util';
 import Redlock = require('redlock');
-
+const Sentry = require("@sentry/node");
 import { Presence } from './Presence';
+
+
+Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 type Callback = (...args: any[]) => void;
 
@@ -35,7 +38,7 @@ export class RedisPresence implements Presence {
             retryJitter: 200
         })
 
-        this.redlock.on('clientError', function(err) {
+        this.redlock.on('clientError', function (err) {
             console.error('A redis error has occurred:', err);
         });
 
@@ -60,14 +63,14 @@ export class RedisPresence implements Presence {
 
     public async subscribe(topic: string, callback: Callback) {
         if (!this.subscriptions[topic]) {
-          this.subscriptions[topic] = [];
+            this.subscriptions[topic] = [];
         }
 
         this.subscriptions[topic].push(callback);
 
         if (this.sub.listeners('message').length === 0) {
-          this.sub.addListener('message', this.handleSubscription);
-        } 
+            this.sub.addListener('message', this.handleSubscription);
+        }
 
         await this.subscribeAsync(topic);
         return this;
@@ -75,19 +78,19 @@ export class RedisPresence implements Presence {
 
     public async unsubscribe(topic: string, callback?: Callback) {
         if (callback) {
-          const index = this.subscriptions[topic].indexOf(callback);
-          this.subscriptions[topic].splice(index, 1);
+            const index = this.subscriptions[topic].indexOf(callback);
+            this.subscriptions[topic].splice(index, 1);
         } else {
-          this.subscriptions[topic] = [];
+            this.subscriptions[topic] = [];
         }
 
         if (this.subscriptions[topic].length === 0) {
-          await this.unsubscribeAsync(topic);
-        } 
+            await this.unsubscribeAsync(topic);
+        }
         return this;
     }
 
-    public async getSubscriptions() { 
+    public async getSubscriptions() {
         return this.subscriptions
     }
 
@@ -104,8 +107,8 @@ export class RedisPresence implements Presence {
     }
 
     public async setex(key: string, value: string, seconds: number) {
-      return new Promise((resolve) =>
-        this.pub.setex(key, seconds, value, resolve));
+        return new Promise((resolve) =>
+            this.pub.setex(key, seconds, value, resolve));
     }
 
     public async get(key: string) {
@@ -180,8 +183,8 @@ export class RedisPresence implements Presence {
     public async hgetall(key: string) {
         return new Promise<{ [key: string]: string }>((resolve, reject) => {
             this.pub.hgetall(key, (err, values) => {
-              if (err) { return reject(err); }
-              resolve(values);
+                if (err) { return reject(err); }
+                resolve(values);
             });
         });
     }
@@ -189,8 +192,8 @@ export class RedisPresence implements Presence {
     public async hdel(key: string, field: string) {
         return new Promise((resolve, reject) => {
             this.pub.hdel(key, field, (err, ok) => {
-              if (err) { return reject(err); }
-              resolve(ok);
+                if (err) { return reject(err); }
+                resolve(ok);
             });
         });
     }
@@ -208,15 +211,17 @@ export class RedisPresence implements Presence {
     }
 
     protected handleSubscription = (channel, message) => {
-        try { 
-            if (this.subscriptions[channel]) {
-                for (let i = 0, l = this.subscriptions[channel].length; i < l; i++) {
-                    this.subscriptions[channel][i](JSON.parse(message));
+        if (this.subscriptions[channel]) {
+            for (let i = 0, l = this.subscriptions[channel].length; i < l; i++) {
+                const item = this.subscriptions[channel][i];
+                try {
+                    item(JSON.parse(message));
+                } catch (err) {
+                    console.log(item);
+                    console.log(err)
+                    Sentry.captureException(err);
                 }
             }
-        } catch(err) { 
-            console.log("Erorr occured during subscription handling")
-            console.log(err)
         }
     }
 
