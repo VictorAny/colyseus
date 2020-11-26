@@ -26,12 +26,14 @@
   ],
   "files": [
     "lib",
+    "test",
+    "src",
     "LICENSE",
     "README.md"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/colyseus/colyseus.git"
+    "url": "git://github.com/colyseus/colyseus.git"s
   },
   "homepage": "https://colyseus.io/",
   "license": "MIT",
