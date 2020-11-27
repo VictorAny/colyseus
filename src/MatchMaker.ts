@@ -17,9 +17,12 @@ import { LocalDriver } from './matchmaker/drivers/LocalDriver';
 import { Client } from './transport/Transport';
 import { Type } from './types';
 import { RedisPresence } from './presence/RedisPresence';
+import { MongooseDriver } from './matchmaker/drivers/MongooseDriver';
 
 
 export { MatchMakerDriver };
+
+export { LocalDriver, MongooseDriver }
 
 export type ClientOptions = any;
 

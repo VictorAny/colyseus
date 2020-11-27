@@ -2,8 +2,11 @@ import { RegisteredHandler } from './matchmaker/RegisteredHandler';
 import { Room } from './Room';
 import { Presence } from './presence/Presence';
 import { MatchMakerDriver, RoomListingData } from './matchmaker/drivers/Driver';
+import { LocalDriver } from './matchmaker/drivers/LocalDriver';
 import { Type } from './types';
+import { MongooseDriver } from './matchmaker/drivers/MongooseDriver';
 export { MatchMakerDriver };
+export { LocalDriver, MongooseDriver };
 export declare type ClientOptions = any;
 export interface SeatReservation {
     sessionId: string;
